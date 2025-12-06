@@ -76,25 +76,34 @@ def render_app():
 
 	require_hf_token()
 
+	uploaded = st.file_uploader("Upload a PDF", type=["pdf"], help="Optional: upload instead of providing a path")
 	pdf_path = st.text_input(
 		"PDF path",
 		value="D:/Lab8/Checklist.pdf",
-		help="Absolute or relative path to the PDF to load",
+		help="Absolute or relative path to the PDF to load (ignored if you upload)",
 	)
 	question = st.text_input("Your question", placeholder="e.g., What does section 2 say?")
 
 	if st.button("Get answer"):
-		if not pdf_path.strip():
-			st.info("Please provide a PDF path.")
-			return
-		if not os.path.isfile(pdf_path):
-			st.error(f"PDF not found at: {pdf_path}")
-			return
+		# If a file was uploaded, save it to a temp path for processing.
+		if uploaded is not None:
+			tmp_path = os.path.join(st.experimental_get_query_params().get("tmpdir", ["."])[0], "uploaded.pdf")
+			with open(tmp_path, "wb") as f:
+				f.write(uploaded.read())
+			pdf_to_use = tmp_path
+		else:
+			if not pdf_path.strip():
+				st.info("Please provide a PDF path or upload a file.")
+				return
+			if not os.path.isfile(pdf_path):
+				st.error(f"PDF not found at: {pdf_path}")
+				return
+			pdf_to_use = pdf_path
 		if not question.strip():
 			st.info("Please enter a question first.")
 			return
 		try:
-			qa_chain = build_qa_chain(pdf_path)
+			qa_chain = build_qa_chain(pdf_to_use)
 		except Exception as exc:  # keep broad here to show errors to user
 			st.error(f"Failed to load or embed PDF: {exc}")
 			return
