@@ -4,5 +4,5 @@ langchain-community==0.0.38
 langchain-text-splitters==0.0.2
 huggingface-hub==0.36.0
 sentence-transformers==3.3.1
-faiss-cpu==1.7.4
+faiss-cpu==1.13.1
 pypdf==4.1.0
